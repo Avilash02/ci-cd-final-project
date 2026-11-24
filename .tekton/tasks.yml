@@ -1,0 +1,32 @@
+
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cleanup
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: cleanup
+      image: alpine:latest
+      script: |
+        #!/bin/sh
+        rm -rf /workspace/source/*
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: test
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: install-and-test
+      image: python:3.10-slim
+      workingDir: /workspace/source
+      script: |
+        #!/bin/sh
+        python -m pip install -r requirements.txt
+        python -m pip install flake8 nose
+        flake8 service tests
+        python -c "import collections, collections.abc; collections.Callable = collections.abc.Callable; import nose; nose.main()"
